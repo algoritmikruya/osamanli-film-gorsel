@@ -1,0 +1,573 @@
+!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Osmanlı Dönemi Film Projesi Sunumu</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Dancing Script (El Yazısı) fontu -->
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-image: url('https://raw.githubusercontent.com/algoritmikruya/osamanli-film-gorsel/4e725b373ab9d3d073b36117c9344b1475754c36/SABLONLAR.jpg'); /* Ana sayfa fonu olarak yeni görsel */
+            background-repeat: repeat; /* Desenin tekrar etmesi için */
+            background-size: auto; /* Desenin orijinal boyutunu koruması için */
+            background-color: #f8f5f0; /* Açık krem tonu, desenle harmanlanacak */
+            background-blend-mode: lighten; /* Deseni daha açık hale getirmek için */
+            color: #333;
+        }
+        .section-title {
+            position: relative;
+            display: inline-block;
+            padding-bottom: 8px;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 70%;
+            height: 3px;
+            background-color: #8B4513; /* Kahverengi tonu */
+            border-radius: 2px;
+        }
+        /* Gizli içeriği göstermek için */
+        .character-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+        .character-details.active {
+            max-height: 1000px; /* Yeterince büyük bir değer */
+            transition: max-height 0.5s ease-in;
+        }
+        .character-card {
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+        }
+        .character-card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Ek Bilgiler bölümünün arka plan deseni için stil */
+        .pattern-background {
+            background-image: url('https://raw.githubusercontent.com/algoritmikruya/osamanli-film-gorsel/4e725b373ab9d3d0073b36117c9344b1475754c36/arka%20plan%20desen.jpeg'); /* Kullanıcının sağladığı GitHub URL'si */
+            background-repeat: no-repeat; /* Desenin tekrar etmemesi için */
+            background-size: cover; /* Desenin tüm alanı kaplaması için */
+            background-position: center; /* Desenin ortalanması için */
+            background-color: #f8f5f0; /* Arka plan rengi, desenle karışacak */
+            opacity: 0.8; /* Genel opaklığı ayarlayarak daha da hafifletme */
+            padding: 4rem; /* İçerik için boşluk */
+            position: relative; /* İçerik için konumlandırma */
+            z-index: 1; /* İçeriğin üstte görünmesi için */
+        }
+        /* İçeriğin arka planın üstünde görünmesini sağlamak için */
+        .pattern-background > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Görselleri hafifletmek için yeni stil */
+        .lightened-image {
+            filter: brightness(1.5); /* Görseli %150 daha parlak yapar */
+            opacity: 0.7; /* Hafif şeffaflık ekler */
+        }
+
+        /* Tam ekran modal stil */
+        .fullscreen-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Yarı şeffaf siyah arka plan */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; /* Diğer her şeyin üstünde olması için */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .fullscreen-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .fullscreen-modal img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain; /* Görselin tamamını sığdır */
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        .modal-close-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: white;
+            color: #333;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Karakter kartı içindeki copyright metni */
+        .card-copyright-text {
+            color: #6b7280; /* Tailwind gray-500 */
+            font-size: 0.75rem; /* Daha küçük metin */
+            margin-top: 0.5rem;
+            text-align: center;
+            width: 100%;
+            opacity: 0; /* Başlangıçta gizli */
+            transition: opacity 0.3s ease-in-out;
+        }
+        /* Karakter detayları aktifken copyright metnini göster */
+        .character-details.active ~ .card-copyright-text { /* ~ ile kardeş element seçimi */
+            opacity: 1;
+        }
+
+        /* Footer stil */
+        .main-footer {
+            margin-top: 4rem;
+            padding: 2rem;
+            text-align: center;
+            color: #6b7280; /* Tailwind gray-500 */
+            font-size: 0.875rem;
+        }
+        .main-footer a {
+            color: #8B4513; /* Kahverengi tonu */
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .main-footer a:hover {
+            text-decoration: underline;
+        }
+        audio {
+            width: 80%; /* Ses çaların genişliği */
+            max-width: 400px; /* Maksimum genişlik */
+            margin: 2rem auto; /* Ortalamak için */
+            display: block; /* Blok element yap */
+        }
+        .song-title-handwritten {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.25rem; /* text-3xl for prominence */
+            color: #4a5568; /* Tailwind gray-700 */
+            margin-bottom: 1rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1); /* Subtle shadow for readability */
+        }
+        .language-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+        }
+        .language-button {
+            padding: 8px 12px;
+            border-radius: 8px;
+            background-color: #8B4513; /* Kahverengi tonu */
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .language-button:hover {
+            background-color: #A0522D; /* Daha açık kahverengi */
+        }
+        .language-button.active {
+            background-color: #6B2A0A; /* Daha koyu kahverengi */
+            cursor: default;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Ana Konteyner -->
+    <div class="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+
+        <!-- Dil Seçici -->
+        <div class="language-switcher">
+            <button class="language-button active" id="lang-tr" onclick="switchLanguage('tr')">TR</button>
+            <button class="language-button" id="lang-ru" onclick="switchLanguage('ru')">RU</button>
+        </div>
+
+        <!-- Başlık Bölümü -->
+        <header class="text-center mb-16 max-w-4xl w-full">
+            <h1 class="text-7xl sm:text-8xl font-extrabold text-gray-900 mb-4 leading-tight">
+                <span class="text-8B4513">HOLOP</span>
+            </h1>
+            <p class="text-3xl sm:text-4xl font-bold text-gray-700" data-translate="projectTitle">
+                Osmanlı Dönemi Film Projesi
+            </p>
+            <p class="text-xl text-gray-600 mt-2" data-translate="epicJourney">
+                Tarihin derinliklerinden ilham alan epik bir yolculuk...
+            </p>
+            <div class="mt-8">
+                <!-- Film Projesi Görseli -->
+                <img src="https://raw.githubusercontent.com/algoritmikruya/osamanli-film-gorsel/4e725b373ab9d3d073b36117c9344b1475754c36/arka%20plan%20desen.jpeg" alt="Film Projesi Görseli" class="rounded-xl shadow-lg mx-auto w-full max-w-3xl object-cover h-96">
+            </div>
+        </header>
+
+        <!-- Proje Hakkında Bölümü -->
+        <section class="bg-white p-8 sm:p-12 rounded-2xl shadow-xl mb-16 max-w-4xl w-full">
+            <h2 class="text-4xl font-bold text-gray-800 mb-8 section-title" data-translate="aboutProjectTitle">Proje Hakkında</h2>
+            <div class="text-lg text-gray-700 leading-relaxed">
+                <p class="mb-4" data-translate="aboutProjectPara1">
+                    Bu proje, Osmanlı İmparatorluğu'nun görkemli dönemlerinden bir kesiti, o dönemin ruhunu, insanlarını ve olaylarını <strong class="text-gray-900">zaman yolculuğunda geçen bir hikaye ile</strong> beyaz perdeye taşımayı hedeflemektedir. Hikayemiz, dönemin sosyal yapısını, siyasi entrikalarını ve insanlık hallerini <strong class="text-gray-900">büyülü bir aşkın gölgesinde</strong> derinlemesine inceleyerek izleyiciye unutulmaz bir deneyim sunmayı amaçlamaktadır.
+                </p>
+                <p data-translate="aboutProjectPara2">
+                    Projemiz, titiz bir araştırmanın ürünü olup, tarihi gerçeklere sadık kalarak, aynı zamanda evrensel temaları işleyecektir. Aşk, ihanet, sadakat, güç ve adalet gibi kavramlar, karakterlerimizin kaderlerini şekillendirecektir.
+                </p>
+            </div>
+        </section>
+
+        <!-- Karakterler Bölümü -->
+        <section class="bg-white p-8 sm:p-12 rounded-2xl shadow-xl mb-16 max-w-4xl w-full">
+            <h2 class="text-4xl font-bold text-gray-800 mb-8 section-title" data-translate="charactersTitle">Karakterler ve Kostümleri</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="characters-container">
+                </div>
+        </section>
+
+        <!-- Tarihi Bağlam Bölümü -->
+        <section class="bg-white p-8 sm:p-12 rounded-2xl shadow-xl mb-16 max-w-4xl w-full">
+            <h2 class="text-4xl font-bold text-gray-800 mb-8 section-title" data-translate="historicalContextTitle">Tarihi Bağlam ve Dönem</h2>
+            <div class="text-lg text-gray-700 leading-relaxed">
+                <p class="mb-4" data-translate="historicalContextPara1">
+                    Film, Osmanlı İmparatorluğu'nın **18. yüzyıl** döneminde geçmektedir. Bu dönem, imparatorluğun kültürel ve sanatsal alanda önemli gelişmeler yaşadığı, aynı zamanda Batı ile ilişkilerin ve iç dinamiklerin yeniden şekillendiği bir zamandır. Kostüm ve dekor referanslarımız da bu dönemin estetiğini ve detaylarını yansıtırken, aynı zamanda filmimizin tarzına uygun olarak stilize edilmiştir.
+                </p>
+                <p data-translate="historicalContextPara2">
+                    Kostümler, set tasarımları ve diyaloglar, dönemin otantik atmosferini yansıtacak şekilde büyük bir özenle hazırlanacaktır. İzleyiciler, kendilerini adeta bir zaman makinesinde hissederek o dönemin yaşamına tanıklık edeceklerdir.
+                </p>
+            </div>
+        </section>
+
+        <!-- Vizyon ve Temalar Bölümü -->
+        <section class="bg-white p-8 sm:p-12 rounded-2xl shadow-xl mb-16 max-w-4xl w-full">
+            <h2 class="text-4xl font-bold text-gray-800 mb-8 section-title" data-translate="visionThemesTitle">Vizyon ve Temalar</h2>
+            <div class="text-lg text-gray-700 leading-relaxed">
+                <ul class="list-disc list-inside space-y-2">
+                    <li data-translate="theme1"><strong class="text-gray-900">Güç ve Sorumluluk:</strong> Hükümdarların ve devlet adamlarının omuzlarındaki ağır yük.</li>
+                    <li data-translate="theme2"><strong class="text-gray-900">Aşk ve Fedakarlık:</strong> Zorlu koşullarda yeşeren ve sınanan ilişkiler.</li>
+                    <li data-translate="theme3"><strong class="text-gray-900">İhanet ve Sadakat:</strong> Saray entrikalarının ve kişisel çıkarların çatışması.</li>
+                    <li data-translate="theme4"><strong class="text-gray-900">Adalet Arayışı:</strong> Dönemin sosyal normları içinde hak ve hukukun yeri.</li>
+                    <li data-translate="theme5"><strong class="text-gray-900">Kültürel Zenginlik:</strong> Osmanlı sanatının, mimarisinin ve yaşam tarzının görsel şöleni.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Ek Bilgiler Bölümü - Arka Plan Desenli -->
+        <section class="p-8 sm:p-12 rounded-2xl shadow-xl max-w-4xl w-full text-center pattern-background">
+            <h2 class="text-4xl font-bold text-gray-800 mb-8 section-title" data-translate="additionalInfoTitle">Ek Bilgiler</h2>
+            <p class="text-lg text-gray-700 mb-6" data-translate="additionalInfoPara">
+                Bu bölüm, projenin ilerleyen aşamalarında eklenecek yeni içerikler için ayrılmıştır.
+            </p>
+        </section>
+
+    </div>
+
+    <!-- Tam Ekran Modal Yapısı -->
+    <div id="fullscreen-image-modal" class="fullscreen-modal">
+        <button class="modal-close-button" onclick="closeFullscreenModal()">X</button>
+        <img id="modal-image" src="" alt="Tam Ekran Görsel">
+    </div>
+
+    <!-- Müzik Çalar -->
+    <div class="flex flex-col items-center justify-center w-full max-w-md mx-auto mt-8 mb-4">
+        <div class="song-title-handwritten">
+            Echos of Time
+        </div>
+        <audio controls loop class="w-full">
+            <source src="https://github.com/algoritmikruya/muziklerim/raw/refs/heads/main/echosoftime.AAC" type="audio/aac">
+            <span data-translate="audioFallback">Tarayıcınız ses etiketini desteklemiyor.</span>
+        </audio>
+    </div>
+
+    <!-- Sayfa Altı (Footer) -->
+    <footer class="main-footer">
+        <p data-translate="footerCopyright">© Tasarım / Şebnem İlker</p>
+        <p>YouTube: <a href="https://www.youtube.com/@Algoritmikruya" target="_blank">@Algoritmikruya</a></p>
+    </footer>
+
+    <script>
+        // Global değişkenler
+        const characterSection = document.getElementById('characters-container');
+        const fullscreenModal = document.getElementById('fullscreen-image-modal');
+        const modalImage = document.getElementById('modal-image');
+
+        // Dil çevirileri
+        const translations = {
+            tr: {
+                projectTitle: "Osmanlı Dönemi Film Projesi",
+                epicJourney: "Tarihin derinliklerinden ilham alan epik bir yolculuk...",
+                aboutProjectTitle: "Proje Hakkında",
+                aboutProjectPara1: `Bu proje, Osmanlı İmparatorluğu'nun görkemli dönemlerinden bir kesiti, o dönemin ruhunu, insanlarını ve olaylarını <strong class="text-gray-900">zaman yolculuğunda geçen bir hikaye ile</strong> beyaz perdeye taşımayı hedeflemektedir. Hikayemiz, dönemin sosyal yapısını, siyasi entrikalarını ve insanlık hallerini <strong class="text-gray-900">büyülü bir aşkın gölgesinde</strong> derinlemesine inceleyerek izleyiciye unutulmaz bir deneyim sunmayı amaçlamaktadır.`,
+                aboutProjectPara2: `Projemiz, titiz bir araştırmanın ürünü olup, tarihi gerçeklere sadık kalarak, aynı zamanda evrensel temaları işleyecektir. Aşk, ihanet, sadakat, güç ve adalet gibi kavramlar, karakterlerimizin kaderlerini şekillendirecektir.`,
+                charactersTitle: "Karakterler ve Kostümleri",
+                historicalContextTitle: "Tarihi Bağlam ve Dönem",
+                historicalContextPara1: `Film, Osmanlı İmparatorluğu'nın **18. yüzyıl** döneminde geçmektedir. Bu dönem, imparatorluğun kültürel ve sanatsal alanda önemli gelişmeler yaşadığı, aynı zamanda Batı ile ilişkilerin ve iç dinamiklerin yeniden şekillendiği bir zamandır. Kostüm ve dekor referanslarımız da bu dönemin estetiğini ve detaylarını yansıtırken, aynı zamanda filmimizin tarzına uygun olarak stilize edilmiştir.`,
+                historicalContextPara2: `Kostümler, set tasarımları ve diyaloglar, dönemin otantik atmosferini yansıtacak şekilde büyük bir özenle hazırlanacaktır. İzleyiciler, kendilerini adeta bir zaman makinesinde hissederek o dönemin yaşamına tanıklık edeceklerdir.`,
+                visionThemesTitle: "Vizyon ve Temalar",
+                theme1: `<strong class="text-gray-900">Güç ve Sorumluluk:</strong> Hükümdarların ve devlet adamlarının omuzlarındaki ağır yük.`,
+                theme2: `<strong class="text-gray-900">Aşk ve Fedakarlık:</strong> Zorlu koşullarda yeşeren ve sınanan ilişkiler.`,
+                theme3: `<strong class="text-gray-900">İhanet ve Sadakat:</strong> Saray entrikalarının ve kişisel çıkarların çatışması.`,
+                theme4: `<strong class="text-gray-900">Adalet Arayışı:</strong> Dönemin sosyal normları içinde hak ve hukukun yeri.`,
+                theme5: `<strong class="text-gray-900">Kültürel Zenginlik:</strong> Osmanlı sanatının, mimarisinin ve yaşam tarzının görsel şöleni.`,
+                additionalInfoTitle: "Ek Bilgiler",
+                additionalInfoPara: "Bu bölüm, projenin ilerleyen aşamalarında eklenecek yeni içerikler için ayrılmıştır.",
+                audioFallback: "Tarayıcınız ses etiketini desteklemiyor.",
+                footerCopyright: "© Tasarım / Şebnem İlker",
+                characterDescriptions: {
+                    "ŞEHZADE HAKAN": "Filmin ana karakterlerinden biri olan Şehzade Hakan'ın kostümleri.",
+                    "ŞEHZADENİN TÜRK KORUMASI": "Şehzadenin özel koruması için detaylı kostüm.",
+                    "SULTANIN KORUMALARI, YENİÇERİLER": "Sultanın saraydaki Yeniçeri korumalarının kostümleri.",
+                    "SULTANIN EŞLERİ": "Sultanın eşleri için zarif ve gösterişli kostümler.",
+                    "HAREMDEKİ CARİYELER": "Haremindeki cariyeler için hafif ve renkli kostümler.",
+                    "HAKAN'IN EŞLERİ": "Hakan'ın eşleri için özel tasarım kostümler.",
+                    "DANSÇILAR": "Düğün sahnesi için canlı ve transparan dansçı kostümleri.",
+                    "TÜRK BATUR": "Türk Batur karakterinin kostümü.",
+                    "GÜZEL TÜRK KIZI": "Güzel Türk Kızı karakterinin kostümü.",
+                    "SULTANIN KORUMASI": "Sultanın iri cüsseli koruması için özel zırhlı kostüm.",
+                    "KÜÇÜK TÜRK": "Küçük Türk karakterinin kostümü.",
+                    "TÜRK KÖYLÜLER": "Sokakta, pazarda ve meydanda yer alan Türk köylülerinin günlük kıyafetleri.",
+                    "SULTANIN DEVLET YETKİLİLERİ": "Sultanın yanındaki vezirler ve paşalar için resmi kostümler.",
+                    "SULTANIN ERKEK HİZMETÇİLERİ": "Saraydaki erkek hizmetçiler için kostümler.",
+                    "SULTANIN KADIN HİZMETÇİLERİ": "Saraydaki kadın hizmetçiler için kostümler.",
+                    "GARSONLAR": "Düğün törenindeki garsonlar için kostümler.",
+                    "HAREM AĞALARI": "Haremin düzenini sağlayan ağalar için kostümler.",
+                    "MÜZİSYENLER": "Düğün eğlencesindeki müzisyenler için kostümler.",
+                    "DÜĞÜNÜN MİSAFİRLERİ": "Düğün misafirleri için döneme uygun kıyafetler.",
+                    "GELİN SARAYININ KORUMALARI": "Gelin sarayını koruyan özel muhafızların zırhlı kostümleri.",
+                    "DİĞER ROLLER": "Diğer yardımcı roller ve figüranlar için genel kostüm bilgileri."
+                }
+            },
+            ru: {
+                projectTitle: "Проект фильма Османской эпохи",
+                epicJourney: "Эпическое путешествие, вдохновленное глубинами истории...",
+                aboutProjectTitle: "О проекте",
+                aboutProjectPara1: `Этот проект направлен на перенос на большой экран фрагмента славных времен Османской империи, ее духа, людей и событий <strong class="text-gray-900">в истории, происходящей во времени</strong>. Наша история призвана предложить зрителю незабываемый опыт, глубоко исследуя социальную структуру, политические интриги и человеческие состояния того периода <strong class="text-gray-900">в тени волшебной любви</strong>.`,
+                aboutProjectPara2: `Наш проект является результатом тщательного исследования и будет придерживаться исторических фактов, одновременно затрагивая универсальные темы. Такие понятия, как любовь, предательство, верность, власть и справедливость, будут формировать судьбы наших персонажей.`,
+                charactersTitle: "Персонажи и костюмы",
+                historicalContextTitle: "Исторический контекст и период",
+                historicalContextPara1: `Действие фильма происходит в **18 веке** Османской империи. Этот период был временем значительного культурного и художественного развития империи, а также временем переформирования отношений с Западом и внутренних динамик. Наши референсы костюмов и декораций отражают эстетику и детали этого периода, а также стилизованы в соответствии со стилем нашего фильма.`,
+                historicalContextPara2: `Костюмы, декорации и диалоги будут тщательно подготовлены, чтобы отразить аутентичную атмосферу того периода. Зрители почувствуют себя в машине времени, становясь свидетелями жизни той эпохи.`,
+                visionThemesTitle: "Видение и темы",
+                theme1: `<strong class="text-gray-900">Власть и ответственность:</strong> Тяжелое бремя на плечах правителей и государственных деятелей.`,
+                theme2: `<strong class="text-gray-900">Любовь и самопожертвование:</strong> Отношения, расцветающие и испытываемые в трудных условиях.`,
+                theme3: `<strong class="text-gray-900">Предательство ve верность:</strong> Конфликт дворцовых интриг ve личных интересов.`,
+                theme4: `<strong class="text-gray-900">Поиск справедливости:</strong> Место права ve закона в социальных нормах того периода.`,
+                theme5: `<strong class="text-gray-900">Культурное богатство:</strong> Визуальное великолепие османского искусства, архитектуры ve образа жизни.`,
+                additionalInfoTitle: "Дополнительная информация",
+                additionalInfoPara: "Этот раздел зарезервирован для нового контента, который будет добавлен на более поздних этапах проекта.",
+                audioFallback: "Ваш браузер не поддерживает аудио тег.",
+                footerCopyright: "© Дизайн / Шебнем Илькер",
+                characterDescriptions: {
+                    "ŞEHZADE HAKAN": "Костюмы Шехзаде Хакана, одного из главных героев фильма.",
+                    "ŞEHZADENİN TÜRK KORUMASI": "Детальный костюм для личного телохранителя Шехзаде.",
+                    "SULTANIN KORUMALARI, YENİÇERİЛЕР": "Костюмы янычар, телохранителей султана во дворце.",
+                    "SULTANIN EŞЛЕРİ": "Элегантные и роскошные костюмы для жён султана.",
+                    "HAREMDEKİ CARİYELER": "Легкие и красочные костюмы для наложниц в гареме.",
+                    "HAKAN'IN EŞЛЕРİ": "Специально разработанные костюмы для жён Хакана.",
+                    "DANSÇILAR": "Яркие и прозрачные костюмы танцоров для свадебной сцены.",
+                    "TÜRK BATUR": "Костюм персонажа Турецкий Батур.",
+                    "GÜZEL TÜRK KIZI": "Костюм персонажа Красивая Турецкая Девушка.",
+                    "SULTANIN KORUMASI": "Специальный бронированный костюм для крупного телохранителя султана.",
+                    "KÜÇÜK TÜRK": "Костюм персонажа Маленький Турок.",
+                    "TÜRK KÖYLÜЛЕР": "Повседневная одежда турецких крестьян, находящихся на улице, рынке и площади.",
+                    "SULTANIN DEVLET YETKİLİЛЕРİ": "Официальные костюмы для визирей и пашей при султане.",
+                    "SULTANIN ERKEK HİZМЕТÇİЛЕРİ": "Костюмы для мужчин-слуг во дворце.",
+                    "SULTANIN KADIN HİZМЕТÇİЛЕРİ": "Костюмы для женщин-слуг во дворце.",
+                    "GARSONLAR": "Костюмы для официантов на свадебной церемонии.",
+                    "HAREM AĞАЛАРЫ": "Костюмы для аг гарема, обеспечивающих порядок в гареме.",
+                    "MÜZİSYENЛЕР": "Костюмы для музыкантов на свадебном торжестве.",
+                    "DÜĞÜNÜN MİSAFİRLERİ": "Костюмы, соответствующие эпохе, для свадебных гостей.",
+                    "GELİN SARAYININ KORUMALARI": "Бронированные костюмы для специальных охранников дворца невесты.",
+                    "DİĞЕР ROLLER": "Общая информация о костюмах для других вспомогательных ролей и статистов."
+                }
+            }
+        };
+
+        // Karakter verileri (hem Türkçe hem Rusça isim ve açıklamaları içerir)
+        const characters = [
+            { name_tr: "ŞEHZADE HAKAN", name_ru: "Принц Хакан", count: 6, description_tr: "Filmin ana karakterlerinden biri olan Şehzade Hakan'ın kostümleri.", description_ru: "Костюмы Шехзаде Хакана, одного из главных героев фильма.", images: ['https://raw.githubusercontent.com/algoritmikruya/osamanli-film-gorsel/4e725b373ab9d3d073b36117c9344b1475754c36/sehzade%20hakan1.jpeg', 'https://raw.githubusercontent.com/algoritmikruya/osamanli-film-gorsel/4e725b373ab9d3d073b36117c9344b1475754c36/sehzade%20hakan2.jpeg', 'https://raw.githubusercontent.com/algoritmikruya/osamanli-film-gorsel/4e725b373ab9d3d073b36117c9344b1475754c36/sehzade%20hakan3.jpeg', 'https://raw.githubusercontent.com/algoritmikruya/osamanli-film-gorsel/4e725b373ab9d3d073b36117c9344b1475754c36/sehzade%20hakan4.jpeg', null, null] },
+            { name_tr: "ŞEHZADENİN TÜRK KORUMASI", name_ru: "Турецкий телохранитель принца", count: 1, description_tr: "Şehzadenin özel koruması için detaylı kostüm.", description_ru: "Детальный костюм для личного телохранителя Шехзаде.", images: ['https://raw.githubusercontent.com/algoritmikruya/osamanli-film-gorsel/4e725b373ab9d3d073b36117c9344b1475754c36/saray%20koruma%20yasli1.jpeg', 'https://raw.githubusercontent.com/algoritmikruya/osamanli-film-gorsel/4e725b373ab9d3d073b36117c9344b1475754c36/saray%20koruma%20genc2.jpeg', null, null, null, null] },
+            { name_tr: "SULTANIN KORUMALARI, YENİÇERİLER", name_ru: "Телохранители султана, янычары", count: 2, description_tr: "Sultanın saraydaki Yeniçeri korumalarının kostümleri.", description_ru: "Костюмы янычар, телохранителей султана во дворце.", images: ['https://raw.githubusercontent.com/algoritmikruya/osamanli-film-gorsel/4e725b373ab9d3d073b36117c9344b1475754c36/yeniceri1.jpeg', 'https://raw.githubusercontent.com/algoritmikruya/osamanli-film-gorsel/4e725b373ab9d3d073b36117c9344b1475754c36/yeniceri2.jpeg', 'https://raw.githubusercontent.com/algoritmikruya/osamanli-film-gorsel/4e725b373ab9d3d073b36117c9344b1475754c36/yeniceri3.jpeg', null, null, null] },
+            { name_tr: "SULTANIN EŞLERİ", name_ru: "Жёны султана", count: 5, description_tr: "Sultanın eşleri için zarif ve gösterişli kostümler.", description_ru: "Элегантные и роскошные костюмы для жён султана.", images: ['https://raw.githubusercontent.com/algoritmikruya/osamanli-film-gorsel/4e725b373ab9d3d073b36117c9344b1475754c36/sehzade%20esi1.jpeg', 'https://raw.githubusercontent.com/algoritmikruya/osamanli-film-gorsel/4e725b373ab9d3d073b36117c9344b1475754c36/sehzade%20esi2.jpeg', 'https://raw.githubusercontent.com/algoritmikruya/osamanli-film-gorsel/4e725b373ab9d3d073b36117c9344b1475754c36/sehzade%20esi3.jpeg', 'https://raw.githubusercontent.com/algoritmikruya/osamanli-film-gorsel/4e725b373ab9d3d073b36117c9344b1475754c36/sehzade%20esi4.jpeg', null, null] },
+            { name_tr: "HAREMDEKİ CARİYELER", name_ru: "Наложницы в гареме", count: 10, description_tr: "Haremindeki cariyeler için hafif ve renkli kostümler.", description_ru: "Легкие и красочные костюмы для наложниц в гареме.", images: [] },
+            { name_tr: "HAKAN'IN EŞLERİ", name_ru: "Жёны Хакана", count: 6, description_tr: "Hakan'ın eşleri için özel tasarım kostümler.", description_ru: "Специально разработанные костюмы для жён Хакана.", images: [] },
+            { name_tr: "DANSÇILAR", name_ru: "Танцоры", count: 8, description_tr: "Düğün sahnesi için canlı ve transparan dansçı kostümleri.", description_ru: "Яркие и прозрачные костюмы танцоров для свадебной сцены.", images: [] },
+            { name_tr: "TÜRK BATUR", name_ru: "Турецкий Батур", count: 1, description_tr: "Türk Batur karakterinin kostümü.", description_ru: "Костюм персонажа Турецкий Батур.", images: [] },
+            { name_tr: "GÜZEL TÜRK KIZI", name_ru: "Красивая TÜRK KIZI", count: 1, description_tr: "Güzel Türk Kızı karakterinin kostümü.", description_ru: "Костюм персонажа Красивая Турецкая Девушка.", images: [] },
+            { name_tr: "SULTANIN KORUMASI", name_ru: "Телохранитель султана", count: 1, description_tr: "Sultanın iri cüsseli koruması için özel zırhlı kostüm.", description_ru: "Специальный бронированный костюм для крупного телохранителя султана.", images: [] },
+            { name_tr: "KÜÇÜK TÜRK", name_ru: "Маленький ТУРОК", count: 1, description_tr: "Küçük Türk karakterinin kostümü.", description_ru: "Костюм персонажа Маленький Турок.", images: [] },
+            { name_tr: "TÜRK KÖYLÜLER", name_ru: "Турецкие крестьяне", count: 150, description_tr: "Sokakta, pazarda ve meydanda yer alan Türk köylülerinin günlük kıyafetleri.", description_ru: "Повседневная одежда турецких крестьян, находящихся на улице, рынке и площади.", images: [] },
+            { name_tr: "SULTANIN DEVLET YETKİLİLERİ", name_ru: "Государственные чиновники султана", count: 15, description_tr: "Sultanın yanındaki vezirler ve paşalar için resmi kostümler.", description_ru: "Официальные костюмы для визирей и пашей при султане.", images: [] },
+            { name_tr: "SULTANIN ERKEK HİZMETÇİLERİ", name_ru: "Мужчины-слуги султана", count: 6, description_tr: "Saraydaki erkek hizmetçiler için kostümler.", description_ru: "Костюмы для мужчин-слуг во дворце.", images: [] },
+            { name_tr: "SULTANIN KADIN HİZMETÇİLERİ", name_ru: "Женщины-слуги султана", count: 3, description_tr: "Saraydaki kadın hizmetçiler için kostümler.", description_ru: "Костюмы для женщин-слуг во дворce.", images: [] },
+            { name_tr: "GARSONLAR", name_ru: "Официанты", count: 5, description_tr: "Düğün törenindeki garsonlar için kostümler.", description_ru: "Костюмы для официантов на свадебной церемонии.", images: [] },
+            { name_tr: "HAREM AĞALARI", name_ru: "Аги гарема", count: 3, description_tr: "Haremin düzenini sağlayan ağalar için kostümler.", description_ru: "Костюмы для аг гарема, обеспечивающих порядок в гареме.", images: [] },
+            { name_tr: "MÜZİSYENLER", name_ru: "Музыканты", count: 4, description_tr: "Düğün eğlencesindeki müzisyenler için kostümler.", description_ru: "Костюмы для музыкантов на свадебном торжестве.", images: [] },
+            { name_tr: "DÜĞÜNÜN MİSAFİRLERİ", name_ru: "Гости на свадьбе", count: 150, description_tr: "Düğün misafirleri için döneme uygun kıyafetler.", description_ru: "Костюмы, соответствующие эпохе, для свадебных гостей.", images: [] },
+            { name_tr: "GELİN SARAYININ KORUMALARI", name_ru: "Охрана дворца невесты", count: 20, description_tr: "Gelin sarayını koruyan özel muhafızların zırhlı kostümleri.", description_ru: "Бронированные костюмы для специальных охранников дворца невесты.", images: [] },
+            { name_tr: "DİĞER ROLLER", count: "Belirtilmemiş", description_tr: "Diğer yardımcı roller ve figüranlar için genel kostüm bilgileri.", description_ru: "Общая информация о костюмах для других вспомогательных ролей и статистов.", images: [] }
+        ];
+
+        let currentLanguage = localStorage.getItem('currentLanguage') || 'tr'; // Varsayılan dil Türkçe
+
+        // Dil değiştirme fonksiyonu
+        function switchLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('currentLanguage', lang);
+            document.documentElement.lang = lang; // HTML lang attribute'unu güncelle
+
+            // Dil düğmelerinin aktif durumunu güncelle
+            document.getElementById('lang-tr').classList.remove('active');
+            document.getElementById('lang-ru').classList.remove('active');
+            document.getElementById(`lang-${lang}`).classList.add('active');
+
+            // Genel metinleri güncelle
+            document.querySelectorAll('[data-translate]').forEach(element => {
+                const key = element.getAttribute('data-translate');
+                if (translations[lang][key]) {
+                    element.innerHTML = translations[lang][key];
+                }
+            });
+
+            // Karakter kartlarını yeniden oluştur
+            renderCharacterCards();
+        }
+
+        // Karakter kartlarını oluşturma fonksiyonu
+        function createCharacterCard(character, index) {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'character-card bg-gray-100 p-6 rounded-xl shadow-md flex flex-col items-center text-center hover:bg-gray-200';
+            cardDiv.onclick = () => toggleCharacterDetails(index);
+
+            const img = document.createElement('img');
+            if (character.images && character.images[0]) {
+                img.src = character.images[0];
+                img.classList.add('object-top');
+            } else {
+                img.src = 'https://raw.githubusercontent.com/algoritmikruya/osamanli-film-gorsel/4e725b373ab9d3d073b36117c9344b1475754c36/arka%20plan%20desen.jpeg';
+                img.classList.add('lightened-image');
+            }
+            img.alt = character[`name_${currentLanguage}`];
+            img.className += ' w-32 h-32 rounded-full object-cover shadow-md mb-4';
+            cardDiv.appendChild(img);
+
+            const name = document.createElement('h3');
+            name.className = 'text-xl font-semibold text-gray-900 mb-2';
+            name.textContent = character[`name_${currentLanguage}`];
+            cardDiv.appendChild(name);
+
+            const description = document.createElement('p');
+            description.className = 'text-gray-600 text-sm';
+            // Karakter açıklamalarını translations nesnesinden çek
+            description.textContent = translations[currentLanguage].characterDescriptions[character.name_tr];
+            cardDiv.appendChild(description);
+
+            const detailsDiv = document.createElement('div');
+            detailsDiv.id = `character-details-${index}`;
+            detailsDiv.className = 'character-details w-full mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4';
+
+            const numberOfPlaceholders = 6;
+            for (let i = 0; i < numberOfPlaceholders; i++) {
+                const costumeBox = document.createElement('div');
+                costumeBox.className = 'bg-white p-3 rounded-lg shadow-sm border border-gray-200 text-sm text-gray-700 flex items-center justify-center h-24';
+
+                const imgElement = document.createElement('img');
+                imgElement.alt = `${character[`name_${currentLanguage}`]} Kostüm ${i + 1}`;
+                imgElement.className = 'w-full h-full object-cover rounded-md cursor-pointer';
+
+                if (character.images && character.images[i]) {
+                    imgElement.src = character.images[i];
+                    imgElement.classList.add('object-top');
+                    imgElement.onclick = (e) => {
+                        e.stopPropagation();
+                        openFullscreenModal(imgElement.src);
+                    };
+                } else {
+                    imgElement.src = 'https://raw.githubusercontent.com/algoritmikruya/osamanli-film-gorsel/4e725b373ab9d3d073b36117c9344b1475754c36/arka%20plan%20desen.jpeg';
+                    imgElement.classList.add('lightened-image');
+                }
+                costumeBox.appendChild(imgElement);
+                detailsDiv.appendChild(costumeBox);
+            }
+            cardDiv.appendChild(detailsDiv);
+
+            if (index < 4) {
+                const copyrightDiv = document.createElement('div');
+                copyrightDiv.className = 'card-copyright-text';
+                copyrightDiv.textContent = '© Şebnem İlker'; // Bu metin değişmeyecek
+                cardDiv.appendChild(copyrightDiv);
+            }
+
+            return cardDiv;
+        }
+
+        // Karakter kartlarını render etme fonksiyonu
+        function renderCharacterCards() {
+            // characterSection zaten global olarak tanımlı
+            characterSection.innerHTML = ''; // Mevcut kartları temizle
+            characters.forEach((char, index) => {
+                characterSection.appendChild(createCharacterCard(char, index));
+            });
+        }
+
+        // Karakter detaylarını açma/kapama fonksiyonu
+        function toggleCharacterDetails(index) {
+            const detailsDiv = document.getElementById(`character-details-${index}`);
+            detailsDiv.classList.toggle('active');
+
+            const cardDiv = detailsDiv.closest('.character-card');
+            if (cardDiv) {
+                const copyrightText = cardDiv.querySelector('.card-copyright-text');
+                if (copyrightText) {
+                    if (detailsDiv.classList.contains('active')) {
+                        copyrightText.style.opacity = '1';
+                    } else {
+                        copyrightText.style.opacity = '0';
+                    }
+                }
+            }
+        }
+
+        // Tam ekran modalı açma fonksiyonu
+        function openFullscreenModal(imageSrc) {
+            // fullscreenModal ve modalImage global olarak tanımlı
+            modalImage.src = imageSrc;
+            fullscreenModal.classList.add('active');
+        }
+
+        // Tam ekran modalı kapatma fonksiyonu
+        function closeFullscreenModal() {
+            // fullscreenModal ve modalImage global olarak tanımlı
+            fullscreenModal.classList.remove('active');
+            modalImage.src = '';
+        }
+
+        // Modalın dışına tıklayınca kapatma
+        // fullscreenModal global olarak tanımlı olduğu için doğrudan event listener eklenebilir
+        document.addEventListener('DOMContentLoaded', () => {
+            if (fullscreenModal) { // Elementin var olduğundan emin ol
+                fullscreenModal.addEventListener('click', (e) => {
+                    if (e.target === fullscreenModal) {
+                        closeFullscreenModal();
+                    }
+                });
+            }
+            switchLanguage(currentLanguage); // Sayfa yüklendiğinde varsayılan dili ayarla
+        });
+    </script>
+</body>
+</html>
